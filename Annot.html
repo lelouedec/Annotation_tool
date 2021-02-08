@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Annotatiooooooonn</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				background-color: #f0f0f0;
+				color: #000;
+				width:100%;
+				height:100%;
+			}
+			html{
+				height:100%;
+			}
+			a {
+				color: #08e;
+			}
+			.selectBox {
+				border: 1px solid #55aaff;
+				background-color: rgba(75, 160, 255, 0.3);
+				position: fixed;
+			}
+			.floating{
+				border: 1px solid #55aaff;
+				background-color: rgba(75, 160, 255, 0.3);
+				position: fixed;
+				top : 60px;
+				left: 350px;
+			}
+			.floating2{
+				border: 1px solid #55aaff;
+				background-color: rgba(75, 160, 255, 0.3);
+				position: fixed;
+				top : 270px;
+				left: 350px;
+			}
+			.floating3{
+				border: 1px solid #55aaff;
+				background-color: rgba(75, 160, 255, 0.3);
+				position: fixed;
+				top : 480px;
+				left: 10px;
+			}
+			.class1:hover{
+				cursor:pointer;
+			}
+		</style>
+		<!-- CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous" rel="stylesheet">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
+
+</head>
+<script src="cannon.js"></script>
+<!-- <script type="module" src="annotation.js" ></script> -->
+<script type="module" >
+	import * as ANNOT from './annotation.js';
+	function loading(path){
+		ANNOT.load_pcd_function(path);
+	};
+	function add_cylinder_func(){
+		ANNOT.add_cylinder_func();
+	};
+	function scale(){
+		ANNOT.to_scale_func();
+	};
+	function rotate(){
+		ANNOT.to_rotate_func();
+	};
+	function translate(){
+		ANNOT.to_translate_func();
+	};
+	function add_cube_func(){
+		ANNOT.add_Cube_func();
+	};
+	function add_sphere_func(){
+		ANNOT.add_Sphere_func();
+	};
+	function painting(){
+		ANNOT.set_painting_func();
+	};
+	function reclass(param){
+		ANNOT.set_reclass(param);
+	};
+
+	document.getElementById("straw").addEventListener("click", function(){
+		loading("02.pcd")
+	});
+	document.getElementById("tomato").addEventListener("click", function(){
+		loading("03-10.pcd")
+	});
+	document.getElementById("cylinder").addEventListener("click", function(){
+		add_cylinder_func()
+	});
+	document.getElementById("cube").addEventListener("click", function(){
+		add_cube_func()
+	});
+	document.getElementById("sphere").addEventListener("click", function(){
+		add_sphere_func()
+	});
+	document.getElementById("scale").addEventListener("click", function(){
+		scale()
+	});
+	document.getElementById("rotate").addEventListener("click", function(){
+		rotate()
+	});
+	document.getElementById("translate").addEventListener("click", function(){
+		translate()
+	});
+
+	document.getElementById("painting").addEventListener("click", function(){
+		painting()
+	});
+	document.getElementById("painting2").addEventListener("click", function(){
+		painting()
+	});
+	for(var i = 0;i<document.getElementsByClassName("class1").length;i++){
+		document.getElementsByClassName("class1")[i].addEventListener("click", function(event){
+		var targetElement = event.target || event.srcElement;
+		reclass(targetElement.style.backgroundColor)
+		});
+	}
+</script>
+	<body>
+
+
+		<!-- Modal -->
+		<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModal" aria-hidden="true">
+			<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+				<h5 class="modal-title" id="exampleModalLabel">Help window</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+				</div>
+				<div class="modal-body">
+					<div class="container">
+						<ul>
+							<li>
+								ctr  +  moving mousse = drawing
+							</li>
+							<li>
+								A = place sphere where mousse is
+							</li>
+						</ul>
+					</div>
+				</div>
+				<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+			</div>
+		</div>		  
+		  <div class="container-fluid" style="height:100%;">
+			<div class="row" style="height:100%;">
+			  <div  class="col-2 bg-dark" style="height:100%;padding-top: 10px;">
+				  		<h3 style="color:#f0f0f0;">Annotation tool inteface</h3>
+						<ul class="nav flex-column" styl="height:100%;" >
+							<li class="nav-item">
+								<a class="nav-link" id="straw" href="#" style="color:#f0f0f0;" >
+										Strawberry_pcd
+								</a>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link" id="tomato" href="#" style="color:#f0f0f0;" >
+										Tomato Plant
+								</a>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link" id="straw" href="#" style="color:#f0f0f0;" >
+										Strawberry_pcd
+								</a>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link" id="tomato" href="#" style="color:#f0f0f0;" >
+										Tomato Plant
+								</a>
+							</li>	
+						</ul>
+				</div>
+				<div class="col-sm-1" style="padding-top: 10px;">
+					<button type="button" class="btn btn-outline-secondary" data-toggle="modal" data-target="#myModal" style="margin-bottom:5px;">Help</button>
+					
+					<button type="button" id="cylinder" class="btn btn-outline-info" style="margin-bottom:5px;">Cylinder</button>
+					<button type="button" id="cube" class="btn btn-outline-info" style="margin-bottom:5px;">Cube</button>
+					<button type="button" id="sphere" class="btn btn-outline-info" style="margin-bottom:5px;">Sphere</button>
+
+					<p class="bg-dark" style="padding:15px;">
+						<button type="button" id="scale" class="btn btn-outline-success" style="margin-bottom:5px;">Scale</button>
+						<button type="button" id="translate" class="btn btn-outline-danger" style="margin-bottom:5px;">Translate</button>
+						<button type="button" id="rotate" class="btn btn-outline-warning" style="margin-bottom:5px;">Rotate</button>
+					</p>
+					<div class="btn-group btn-group-toggle" data-toggle="buttons">
+						<button id="painting" class="btn btn-secondary">
+							<span class="fas fa-paint-brush">
+							</span>
+							<input type="radio" name="options" id="option3" autocomplete="off">  
+						</button>
+						<button id="painting2" class="btn btn-secondary">
+							<span class="fas fa-cubes">
+							</span>
+							<input type="radio" name="options" id="option3" autocomplete="off" checked>  
+						</button>
+					</div>	
+					<span>Select classes:</span> 
+					<div class="row" style="padding:5px;background-color:#b3b3cc;margin: 1px;">
+						  <div class="col border border-light class1 "style="background-color:#ff0000;text-align:center;color:white;">1</div>
+						  <div class="col border border-light class1 "style="background-color:#ff00ff;text-align:center;color:white;">2</div>
+						  <div class="w-100"></div>
+						  <div class="col border border-light class1 "style="background-color:#3366ff;text-align:center;color:white;">3</div>
+						  <div class="col border border-light class1 "style="background-color:#33cccc;text-align:center;color:white;">4</div>
+						  <div class="w-100"></div>
+						  <div class="col border border-light class1"style="background-color:#33cc33;text-align:center;color:white;">5</div>
+						  <div class="col border border-light class1"style="background-color:#66ff33;text-align:center;color:white;">6</div>
+						  <div class="w-100"></div>
+						  <div class="col border border-light class1"style="background-color:#ff9933;text-align:center;color:white;">7</div>
+						  <div class="col border border-light class1"style="background-color:#990099;text-align:center;color:white;">8</div>
+					</div>
+				</div>
+				<div id="main" class="col-9" style="padding:0 !important;">
+				</div>
+		  </div>
+
+		
+
+<!-- jQuery and JS bundle w/ Popper.js -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
+
+	</body>
+</html>
