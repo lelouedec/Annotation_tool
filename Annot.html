@@ -84,6 +84,9 @@
 	function reclass(param){
 		ANNOT.set_reclass(param);
 	};
+	function back_func(){
+		ANNOT.set_back();
+	}
 
 	document.getElementById("straw").addEventListener("click", function(){
 		loading("02.pcd")
@@ -116,6 +119,9 @@
 	document.getElementById("painting2").addEventListener("click", function(){
 		painting()
 	});
+	document.getElementById("back").addEventListener("click", function(){
+		back_func()
+	});
 	for(var i = 0;i<document.getElementsByClassName("class1").length;i++){
 		document.getElementsByClassName("class1")[i].addEventListener("click", function(event){
 		var targetElement = event.target || event.srcElement;
@@ -140,11 +146,15 @@
 					<div class="container">
 						<ul>
 							<li>
-								ctr  +  moving mousse = drawing
+								ctrz or back only for scale for now
 							</li>
 							<li>
-								A = place sphere where mousse is
+								Add objects and move them,translate,rotate them, scale them. What's inside will be the class of their color
 							</li>
+							<li>
+								Changing the class/color of an object changes the class of points inside
+							</li>
+							
 						</ul>
 					</div>
 				</div>
@@ -169,16 +179,6 @@
 										Tomato Plant
 								</a>
 							</li>
-							<li class="nav-item">
-								<a class="nav-link" id="straw" href="#" style="color:#f0f0f0;" >
-										Strawberry_pcd
-								</a>
-							</li>
-							<li class="nav-item">
-								<a class="nav-link" id="tomato" href="#" style="color:#f0f0f0;" >
-										Tomato Plant
-								</a>
-							</li>	
 						</ul>
 				</div>
 				<div class="col-sm-1" style="padding-top: 10px;">
@@ -204,7 +204,17 @@
 							</span>
 							<input type="radio" name="options" id="option3" autocomplete="off" checked>  
 						</button>
-					</div>	
+					</div>
+					<div style="margin-top: 10px;">
+						<button type="button" id="back" class="btn btn-secondary">
+							<span class="fas fa-long-arrow-alt-left">
+							</span>
+						</button>
+						<button  type="button" class="btn btn-secondary">
+							<span class="fas fa-long-arrow-alt-right">
+							</span>
+						</button>
+					</div>
 					<span>Select classes:</span> 
 					<div class="row" style="padding:5px;background-color:#b3b3cc;margin: 1px;">
 						  <div class="col border border-light class1 "style="background-color:#ff0000;text-align:center;color:white;">1</div>
@@ -219,6 +229,7 @@
 						  <div class="col border border-light class1"style="background-color:#ff9933;text-align:center;color:white;">7</div>
 						  <div class="col border border-light class1"style="background-color:#990099;text-align:center;color:white;">8</div>
 					</div>
+					
 				</div>
 				<div id="main" class="col-9" style="padding:0 !important;">
 				</div>

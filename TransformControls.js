@@ -584,7 +584,6 @@ var TransformControls = function ( camera, domElement ) {
 				object.quaternion.multiply( _tempQuaternion.setFromAxisAngle( rotationAxis, rotationAngle ) ).normalize();
 
 			} else {
-
 				rotationAxis.applyQuaternion( parentQuaternionInv );
 				object.quaternion.copy( _tempQuaternion.setFromAxisAngle( rotationAxis, rotationAngle ) );
 				object.quaternion.multiply( quaternionStart ).normalize();

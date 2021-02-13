@@ -46,6 +46,10 @@ var ctrly = [];
 var ctrlz = [];
 var tempctrlsz = [];
 var left_button = 0;
+var dragstart;
+var dragend;
+
+var classes = {0:'{"r":0,"g":0,"b":0}',1:'{"r":1,"g":0,"b":0}',2:'{"r":1,"g":0,"b":1}',3:'{"r":0.2,"g":0.4,"b":1}',4:'{"r":0.2,"g":0.8,"b":0.8}',5:'{"r":0.2,"g":0.8,"b":0.2}',6:'{"r":0.4,"g":1,"b":0.2}',7:'{"r":1,"g":0.6,"b":0.2}',8:'{"r":0.6,"g":0,"b":0.6}'}
 
 init();
 initCannon();
@@ -159,12 +163,25 @@ function init() {
 
     dragControls = new DragControls(draggables, camera, renderer.domElement );
 
-    dragControls.addEventListener( 'dragstart', function () { controls.enabled = false; } );
-    dragControls.addEventListener( 'dragend', function () { controls.enabled = true; } );
+    dragControls.addEventListener( 'dragstart', function (event) { 
+        controls.enabled = false; 
+        dragstart = event.object.position.clone();
+    });
+    dragControls.addEventListener( 'dragend', function (event) { 
+        controls.enabled = true;        
+        dragend = event.object.position.clone();
+        ctrlz.push({
+                uuid:event.object.uuid,
+                transformation:"translate",
+                start:dragstart.clone(),
+                offset:dragend.clone(),
+            }
+        ); 
+    } );
 
     transformControls = new TransformControls(camera, renderer.domElement);
     
-    transformControls.setMode("scale");
+    transformControls.setMode("translate");
     scene.add(transformControls);
     transformControls.addEventListener('dragging-changed', function (event) {
         controls.enabled = !event.value
@@ -205,13 +222,27 @@ function init() {
 }
 function save_transformation(uuid,event){
     // console.log(uuid);
-    if(event.detail.transformation="scale"){
+    if(event.detail.transformation=="scale"){
             tempctrlsz.push({
                 uuid:uuid,
                 transformation:"scale",
                 _tempVector2:event.detail._tempVector2.clone(),
                 scaleStart:event.detail.scaleStart.clone()
             })        
+    }else if(event.detail.transformation=="translate"){
+        tempctrlsz.push({
+            uuid:uuid,
+            transformation:"translate",
+            start:event.detail.positionStart.clone(),
+            offset:event.detail.offset.clone()
+        }) 
+    }else if(event.detail.transformation=="rotate"){
+        // tempctrlsz.push({
+        //     uuid:uuid,
+        //     transformation:"rotate",
+        //     start:event.detail.positionStart.clone(),
+        //     offset:event.detail.offset.clone()
+        // }) 
     }
 
 }
@@ -253,7 +284,7 @@ function load_pcd(path){
             camera3.position.z = 0.0;
             camera3.lookAt( center );
 
-            (annotation = []).length = pointcloud.geometry.vertices.length; annotation.fill(0);
+            (annotation = []).length = pointcloud.geometry.vertices.length; annotation.fill({"r":0,"g":0,"b":0});
         } );
     }else if(path.slice(-3)=="stl"){
         const material = new THREE.MeshPhongMaterial( { color: 0xAAAAAA, specular: 0x111111, shininess: 200 } );
@@ -274,6 +305,7 @@ function load_pcd(path){
 
             mesh.castShadow = true;
             mesh.receiveShadow = true;
+            (annotation = []).length = pointcloud.geometry.vertices.length; annotation.fill({"r":0,"g":0,"b":0});
 
             scene.add( mesh );
         } );
@@ -351,19 +383,47 @@ function onWindowResize() {
     controls.handleResize();
 
 }
-function keyboard2( ev ) {
-    if (ev.keyCode == 90 && ev.ctrlKey){
-        if(ctrlz.length>0){
-            var todostuff = ctrlz.pop()
+
+export function set_back(){func_ctrlz()};
+function func_ctrlz(){
+    if(ctrlz.length>0){
+        var todostuff = ctrlz.pop()
+        if(todostuff!=undefined){
             for(var i=0;i<draggables.length;i++){
                 if(draggables[i].uuid==todostuff.uuid){
-                    if(todostuff.transformation="scale"){
+                    if(todostuff.transformation=="scale"){
                         draggables[i].scale.set( todostuff.scaleStart.x,todostuff.scaleStart.y,todostuff.scaleStart.z);
+                    }else if(todostuff.transformation=="translate"){
+                        draggables[i].position.set(todostuff.start.x,todostuff.start.y,todostuff.start.z)
                     }
                 }
             }
         }
+    }
+}
+function func_delete(){
+   if(transformControls.object!=undefined){
+        var obj = transformControls.object
+        transformControls.detach();
+
+        scene.remove( obj );
+        var index = 0;
+        for (var i =0;i<draggables.length;i++){
+            if(draggables[i].uuid=obj.uuid){
+                index = i;
+            }
+        }
+        draggables = draggables.splice(index, 1);
+        animate();
+    }
+}
+function keyboard2( ev ) {
+    if (ev.keyCode == 90 && ev.ctrlKey){
+        func_ctrlz();
     } 
+    if(ev.keyCode==46){
+        func_delete();
+    }
 
 }
 
@@ -533,30 +593,21 @@ function createPanel() {
                                 cyclinder_contains();
                                 Sphere_contains();
                                 cuboid_contains();
-                                    // for(var i=0;i<objects.length;i++){
-
-                                    //     var radius = objects[i].scale.x * objects[i].geometry.parameters.radius;
-                                    //     var center = objects[i].position;
-                                    //     console.log(objects[i]);
-                                    //     console.log(objects[i].scale.x);
-                                    //     var vertices = pointcloud.geometry.vertices
-                                    //     for(var j=0;j<vertices.length;j++){
-                                    //         var distance = Math.sqrt( (vertices[j].x-center.x)*(vertices[j].x-center.x) + (vertices[j].y-center.y)*(vertices[j].y-center.y) + (vertices[j].z-center.z)*(vertices[j].z-center.z))
-                                    //         if(distance<radius){
-                                    //             annotation[j] = 1.0;
-                                    //         }
-                                    //     }
-
-                                    // }
-                                    // var msg = {
-                                    //     type: "Annotation",
-                                    //     text: "pouet",
-                                    //     id:   1,
-                                    //     annotation: annotation,
-                                    //     date: Date.now()
-                                    // };
-                                    // // Send the msg object as a JSON-formatted string.
-                                    // connection.send(JSON.stringify(msg));
+                                var saved_annot = [];
+                                for (var i=0;i<annotation.length;i++){
+                                    saved_annot.push(getKeyByValue(classes,annotation[i]));
+                                }
+                                var msg = {
+                                    type: "Annotation",
+                                    text: "Annotation for each point",
+                                    id:   1,
+                                    annotation: saved_annot,
+                                    date: Date.now()
+                                };
+                                const a = document.createElement('a')
+                                a.download = "pouet"
+                                a.href = URL.createObjectURL(new Blob([JSON.stringify(msg)], {type: 'application/json'}))
+                                a.click()
                                 },
                                 'discard':function(){
                                     console.log("discard");
@@ -677,6 +728,7 @@ function cyclinder_contains(){
                     }
                 }
                 if(inside ==1.0){
+                    annotation[j] = {r:0,g:1,b:0};
                     pointcloud.geometry.colors[j] ={r:0,g:1,b:0};
                     pointcloud.geometry.colorsNeedUpdate = true;
                 }
@@ -708,6 +760,7 @@ function Sphere_contains(){
             for (var j=0;j<vertices.length;j++){
                 var distance = (vertices[j].x - center.x)**2 +(vertices[j].y - center.y)**2 + (vertices[j].z - center.z)**2
                 if(distance < draggables[i].scale.x**2){
+                    annotation[j] = {r:0,g:1,b:0};
                     pointcloud.geometry.colors[j] ={r:0,g:1,b:0};
                     pointcloud.geometry.colorsNeedUpdate = true;
                 }
@@ -811,6 +864,7 @@ function cuboid_contains(){
                     inside = 1.0;
                 }
                 if(inside == 1.0){
+                    annotation[a] = {r:0,g:1,b:0};
                     pointcloud.geometry.colors[a] ={r:0,g:1,b:0};
                     pointcloud.geometry.colorsNeedUpdate = true;
                 }
@@ -844,3 +898,8 @@ function cuboid_contains(){
 function elypsoid_contains(){
     
 }
+
+
+function getKeyByValue(object, value) {
+    return Object.keys(object).find(key => object[key] === value);
+  }
