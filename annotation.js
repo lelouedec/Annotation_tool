@@ -50,6 +50,10 @@ var dragend;
 
 var classes = {0:'{"r":0,"g":0,"b":0}',1:'{"r":1,"g":0,"b":0}',2:'{"r":1,"g":0,"b":1}',3:'{"r":0.2,"g":0.4,"b":1}',4:'{"r":0.2,"g":0.8,"b":0.8}',5:'{"r":0.2,"g":0.8,"b":0.2}',6:'{"r":0.4,"g":1,"b":0.2}',7:'{"r":1,"g":0.6,"b":0.2}',8:'{"r":0.6,"g":0,"b":0.6}'}
 var classe_base = {"r":0,"g":0,"b":0};
+
+// var geometry = new THREE.CylinderGeometry(0.2,0.2, 10);
+// var pinceau = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial( { color: 0xff0000 }) );
+
 init();
 initCannon();
 function initCannon() {
@@ -97,6 +101,7 @@ function init() {
     camera4.updateMatrix();
     scene.add( camera4 );
 
+    // scene.add(pinceau);
 
 
 
@@ -395,12 +400,20 @@ function func_ctrlz(){
     if(ctrlz.length>0){
         var todostuff = ctrlz.pop()
         if(todostuff!=undefined){
-            for(var i=0;i<draggables.length;i++){
-                if(draggables[i].uuid==todostuff.uuid){
-                    if(todostuff.transformation=="scale"){
-                        draggables[i].scale.set( todostuff.scaleStart.x,todostuff.scaleStart.y,todostuff.scaleStart.z);
-                    }else if(todostuff.transformation=="translate"){
-                        draggables[i].position.set(todostuff.start.x,todostuff.start.y,todostuff.start.z)
+            if(todostuff.transformation=="paint"){
+                for (var i =0;i<todostuff.indices.length;i++){
+                    annotation[todostuff.indices[i]] = todostuff.prev_cla[i];
+                    pointcloud.geometry.colors[todostuff.indices[i]] = todostuff.prev_colors[i];
+                    pointcloud.geometry.colorsNeedUpdate = true;
+                }
+            }else{
+                for(var i=0;i<draggables.length;i++){
+                    if(draggables[i].uuid==todostuff.uuid){
+                        if(todostuff.transformation=="scale"){
+                            draggables[i].scale.set( todostuff.scaleStart.x,todostuff.scaleStart.y,todostuff.scaleStart.z);
+                        }else if(todostuff.transformation=="translate"){
+                            draggables[i].position.set(todostuff.start.x,todostuff.start.y,todostuff.start.z)
+                        } 
                     }
                 }
             }
@@ -457,14 +470,32 @@ function keyboard( ev ) {
             if(painting){
                 var vertices = pointcloud.geometry.vertices;
                 console.log(sphere.scale.x);
+                var painted = [];
+                var painted_color = [];
+                var painted_prevcolor = [];
+                var prev_classe = [];
                 for (var j=0;j<vertices.length;j++){
                     var distance = (vertices[j].x - sphere.position.x)**2 +(vertices[j].y - sphere.position.y)**2 + (vertices[j].z - sphere.position.z)**2
                     if(distance < (sphere.scale.x**2) ){
+                        painted_prevcolor.push(pointcloud.geometry.colors[j]);
+                        prev_classe.push(annotation[j]);
                         annotation[j] = classe_base;//{"r":draggables[i].material.color.r,"g":draggables[i].material.color.g,"b":draggables[i].material.color.b};
                         pointcloud.geometry.colors[j] = classe_base;
                         pointcloud.geometry.colorsNeedUpdate = true;
+                        painted.push(j);
+                        painted_color.push(classe_base);
                     }
                 }
+                ctrlz.push(
+                    {
+                        uuid:'000',
+                        transformation:"paint",
+                        indices:painted,
+                        prev_colors:painted_prevcolor,
+                        newcolor:painted_color,
+                        prev_cla:prev_classe
+                    }
+                )
             }
             break;
             
@@ -476,8 +507,8 @@ function keyboard( ev ) {
 function onDocumentMouseMove( event ) {
 
         event.preventDefault();
-        mouse.x = ( event.offsetX /document.getElementById("main").offsetWidth ) * 2 - 1;
-        mouse.y = - ( event.offsetY / window.innerHeight ) * 2 + 1;
+        mouse.x = ( event.offsetX /   renderer.domElement.offsetWidth ) * 2 - 1;
+        mouse.y = - ( event.offsetY / renderer.domElement.offsetHeight) * 2 + 1;
 
         if(draggables.length>0){
             intersects = raycaster.intersectObjects( draggables );
@@ -574,11 +605,11 @@ function animate() {
             var dir = new THREE.Vector3(raycaster.ray.direction.x,raycaster.ray.direction.y,raycaster.ray.direction.z);
             //normalize the direction vector (convert to vector of length 1)
             dir.normalize();
-            var radi = 0.1;
-            var nb_steps = 10
+            var radi = 0.1// sphere.scale.x;
+            // var nb_steps = 10
             var pos = new THREE.Vector3(origin.x,origin.y,origin.z);
-            var start = new THREE.Vector3(pos.x-(dir.x*50), pos.y-(dir.y*50),pos.z-(dir.z*50));
-            var end   = new THREE.Vector3(pos.x+(dir.x*50), pos.y+(dir.y*50),pos.z+(dir.z*50));
+            var start = new THREE.Vector3(pos.x-(dir.x*100), pos.y-(dir.y*100),pos.z-(dir.z*100));
+            var end   = new THREE.Vector3(pos.x+(dir.x*100), pos.y+(dir.y*100),pos.z+(dir.z*100));
             var dx = end.x - start.x;	// translate so first_pts is origin.  Make vector from
             var dy = end.y - start.y;    // first_pts to second_pts.  Need for this is easily eliminated
             var dz = end.z - start.z;
@@ -586,6 +617,7 @@ function animate() {
             var vertices = pointcloud.geometry.vertices;
             var inthat = origin;
             var doted = 100000000.0;
+            var dsc   = 10000.0;
             for (var j=0;j<vertices.length;j++){
                 var inside = 0;
                 var pdx = vertices[j].x - start.x;		// vector from pt1 to test point.
@@ -604,16 +636,23 @@ function animate() {
                     }
                 }
                 if(inside==1.0){
-                    if(dot<doted){
-                        inthat = vertices[j].clone();
-                        doted = dot;
+                    if(dot<doted ){
+                            inthat = vertices[j].clone();
+                            doted = dot;
+                            dsc = dsq;
                     }
                 }
 
             }
-        if(inthat!=origin){
+        // var axis = new THREE.Vector3(0, 1, 0);
+        // pinceau.quaternion.setFromUnitVectors(axis, dir.clone());
+        // pinceau.position.copy(intersection.point);
+
+        if(inthat!=origin && intersection!=null){
             sphere.visible = true;
-            sphere.position.copy( inthat );
+            var dist = Math.sqrt( (origin.x-inthat.x)**2 + (origin.y-inthat.y)**2 + (origin.z-inthat.z)**2 );
+            var bisu = new THREE.Vector3(origin.x + (dir.x*dist),origin.y+ (dir.y*dist),origin.z+ (dir.z*dist));
+            sphere.position.copy( bisu );
         }else{
             sphere.visible = false;
         }                 
@@ -633,25 +672,25 @@ function createPanel() {
     var folder2 = panel.addFolder( 'Activation/Deactivation' );
     var folder5 = panel.addFolder( 'Points size' );
     var settings = {
-        'show color': true,
+        // 'show color': true,
         'modify step size': 0.05,
         'use default duration': true,
         'set custom duration': 3.5,
         'modify Point size': 0.005,
         'modify Paint scale': 0.01,
     };
-    folder1.add( settings, 'show color' ).onChange( function (value){
-        var points = pointcloud;
-        if(value == false){
-            // points.material.color.setHex( Math.random() * 0xffffff );
-            pointcloud.material.vertexColors = THREE.NoColors;
-            points.material.needsUpdate = true;
-        }else{
-            points.material.vertexColors = THREE.VertexColors;
-            points.material.needsUpdate = true;
-        }
+    // folder1.add( settings, 'show color' ).onChange( function (value){
+    //     var points = pointcloud;
+    //     if(value == false){
+    //         // points.material.color.setHex( Math.random() * 0xffffff );
+    //         pointcloud.material.vertexColors = THREE.NoColors;
+    //         points.material.needsUpdate = true;
+    //     }else{
+    //         points.material.vertexColors = THREE.VertexColors;
+    //         points.material.needsUpdate = true;
+    //     }
 
-    });
+    // });
     var explode = {'save':function(){
                                 cyclinder_contains();
                                 Sphere_contains();
@@ -688,7 +727,7 @@ function createPanel() {
         pointcloud.material.size = value;
         pointcloud.material.needsUpdate = true;
     });
-    folder5.add( settings, 'modify Paint scale', 0.1, 10.0, 0.1 ).listen().onChange( function (value){
+    folder5.add( settings, 'modify Paint scale', 0.05, 10.0, 0.05 ).listen().onChange( function (value){
         sphere.scale.x = value;
         sphere.scale.y = value;
         sphere.scale.z = value;
