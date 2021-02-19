@@ -445,7 +445,20 @@ function keyboard2( ev ) {
     }
 
 }
+export  function set_pointsize_func(size){change_point_size(size)};
 
+function change_point_size(size){
+    pointcloud.material.size = size;
+    pointcloud.material.needsUpdate = true;
+}
+
+export  function set_brushsize_func(size){change_brush_size(size)};
+
+function change_brush_size(size){
+    sphere.scale.x = size;
+    sphere.scale.y = size;
+    sphere.scale.z = size;
+}
 
 function keyboard( ev ) {
     var points = pointcloud;
@@ -668,15 +681,15 @@ function animate() {
 
 function createPanel() {
     var panel = new GUI( { width: 310 } );
-    var folder1 = panel.addFolder( 'Visibility' );
+    // var folder1 = panel.addFolder( 'Visibility' );
     var folder2 = panel.addFolder( 'Activation/Deactivation' );
-    var folder5 = panel.addFolder( 'Points size' );
+    // var folder5 = panel.addFolder( 'Points size' );
     var settings = {
         // 'show color': true,
         'modify step size': 0.05,
         'use default duration': true,
         'set custom duration': 3.5,
-        'modify Point size': 0.005,
+        // 'modify Point size': 0.005,
         'modify Paint scale': 0.01,
     };
     // folder1.add( settings, 'show color' ).onChange( function (value){
@@ -723,19 +736,19 @@ function createPanel() {
     folder2.add(explode,"discard");
     folder2.add(help,"help");
 
-    folder5.add( settings, 'modify Point size', 0.005, 1.0, 0.001 ).listen().onChange( function (value){
-        pointcloud.material.size = value;
-        pointcloud.material.needsUpdate = true;
-    });
-    folder5.add( settings, 'modify Paint scale', 0.05, 10.0, 0.05 ).listen().onChange( function (value){
-        sphere.scale.x = value;
-        sphere.scale.y = value;
-        sphere.scale.z = value;
-    });
+    // folder5.add( settings, 'modify Point size', 0.005, 1.0, 0.001 ).listen().onChange( function (value){
+    //     pointcloud.material.size = value;
+    //     pointcloud.material.needsUpdate = true;
+    // });
+    // folder5.add( settings, 'modify Paint scale', 0.05, 10.0, 0.05 ).listen().onChange( function (value){
+    //     sphere.scale.x = value;
+    //     sphere.scale.y = value;
+    //     sphere.scale.z = value;
+    // });
 
-    folder1.open();
+    // folder1.open();
     folder2.open();
-    folder5.open();
+    // folder5.open();
 
 }
 
