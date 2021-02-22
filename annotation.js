@@ -258,6 +258,7 @@ function save_transformation(uuid,event){
 function load_pcd(path){
     if(path.slice(-3)=="pcd" ){
         loader_pcd.load(path, function (geo) {
+            console.log(geo);
             scene.remove(pointcloud);
             for ( var i = 0; i < objects.length; i ++ ) {
                 scene.remove(objects[i]);
@@ -321,6 +322,35 @@ function load_pcd(path){
 }
 export function load_pcd_function(url) {load_pcd(url);}
 
+function load_from_data(data){
+    var geo = loader_pcd.parse(data);
+    console.log(geo);
+    scene.remove(pointcloud);
+    for ( var i = 0; i < objects.length; i ++ ) {
+        scene.remove(objects[i]);
+    }            
+    objects.length = 0;
+    for ( var i = 0; i < draggables.length; i ++ ) {
+        scene.remove(draggables[i]);
+    }            
+    draggables.length = 0;
+    transformControls.detach();
+    
+
+    pointcloud = geo;
+    scene.add( pointcloud );
+    
+    var center = pointcloud.geometry.boundingSphere.center;
+    pointcloud.geometry.translate(-center.x,-center.y,-center.z)
+    controls.target.set( center.x, center.y, center.z );
+    controls.update();
+
+    
+    camera.position.z = pointcloud.geometry.boundingSphere.radius*10;
+
+    (annotation = []).length = pointcloud.geometry.vertices.length; annotation.fill({"r":0,"g":0,"b":0});
+}
+export function set_load_from_data(data){load_from_data(data);};
 
 function add_cylinder(){
     var heyyou = new THREE.CylinderGeometry( 1, 1, 1, 10 );
