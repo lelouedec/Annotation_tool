@@ -473,8 +473,92 @@ function keyboard2( ev ) {
     if(ev.keyCode==46){
         func_delete();
     }
+    if(ev.keyCode==37 || ev.keyCode==38 || ev.keyCode==39 || ev.keyCode==40){//move left/up/right/down
+        if(ev.shiftKey && ev.keyCode==38 ){
+            move_arrow(100)
+        }else if(ev.shiftKey && ev.keyCode==40){
+            move_arrow(-100)
+        }
+        move_arrow(ev.keyCode);
+    }
+}
+function move_arrow(direction){
+    if(transformControls.object != undefined){
+        
+        var direc = new THREE.Vector3(camera.position.x - transformControls.object.position.x,
+                                      camera.position.y - transformControls.object.position.y,
+                                      camera.position.z - transformControls.object.position.z);
+        var anyvector  = new THREE.Vector3(1,100,2);
+        
+        anyvector.normalize();
+        var orthogonal = new THREE.Vector3(direc.y*anyvector.z-direc.z*anyvector.y,
+                                           anyvector.x*direc.z-anyvector.z*direc.x,
+                                           anyvector.y*direc.x-anyvector.x*direc.y)
+
+        direc.normalize();  
+        orthogonal.normalize();
+        console.log(orthogonal)
+
+        // ortho_gonal = (yc-zb,az-cx,bx-ay).
+        if(direction==38){//up so going away
+            transformControls.object.position.set(transformControls.object.position.x - (0.1*direc.x),
+                                                  transformControls.object.position.y - (0.1*direc.y),
+                                                  transformControls.object.position.z - (0.1*direc.z)
+                                                
+                                                )
+        }else if(direction==40){//down so coming closer
+            transformControls.object.position.set(transformControls.object.position.x + (0.1*direc.x),
+                                                  transformControls.object.position.y + (0.1*direc.y),
+                                                  transformControls.object.position.z + (0.1*direc.z)
+                                                )
+        }
+        else if(direction==37){//left so going left
+            transformControls.object.position.set(transformControls.object.position.x + (0.1*orthogonal.x),
+                                                  transformControls.object.position.y + (0.1*orthogonal.y),
+                                                  transformControls.object.position.z + (0.1*orthogonal.z)
+                                                )
+        }
+        else if(direction==39){//left so going left
+            transformControls.object.position.set(transformControls.object.position.x - (0.1*orthogonal.x),
+                                                  transformControls.object.position.y - (0.1*orthogonal.y),
+                                                  transformControls.object.position.z - (0.1*orthogonal.z)
+                                                )
+        }else if(direction == 100){
+            var anyvector  = new THREE.Vector3(100,1,2);
+            anyvector.normalize();
+            var orthogonal = new THREE.Vector3(direc.y*anyvector.z-direc.z*anyvector.y,
+                                            anyvector.x*direc.z-anyvector.z*direc.x,
+                                            anyvector.y*direc.x-anyvector.x*direc.y)
+
+            direc.normalize();  
+            orthogonal.normalize();
+            transformControls.object.position.set(transformControls.object.position.x + (0.1*orthogonal.x),
+                                                  transformControls.object.position.y + (0.1*orthogonal.y),
+                                                  transformControls.object.position.z + (0.1*orthogonal.z)
+                                                )
+        }
+        else if(direction == -100){
+            var anyvector  = new THREE.Vector3(100,1,2);
+            anyvector.normalize();
+            var orthogonal = new THREE.Vector3(direc.y*anyvector.z-direc.z*anyvector.y,
+                                            anyvector.x*direc.z-anyvector.z*direc.x,
+                                            anyvector.y*direc.x-anyvector.x*direc.y)
+
+            direc.normalize();  
+            orthogonal.normalize();
+            transformControls.object.position.set(transformControls.object.position.x - (0.1*orthogonal.x),
+                                                  transformControls.object.position.y - (0.1*orthogonal.y),
+                                                  transformControls.object.position.z - (0.1*orthogonal.z)
+                                                )
+        }
+        
+    }else{
+        
+    }
 
 }
+
+
 export  function set_pointsize_func(size){change_point_size(size)};
 
 function change_point_size(size){
