@@ -100,7 +100,7 @@
 <!-- <script type="module" src="annotation.js" ></script> -->
 <script type="module" >
 	import * as ANNOT from './annotation.js';
-
+	loading(window.location.search.substr(1));
 	function loading(path){
 		ANNOT.load_pcd_function(path);
 	};
@@ -138,12 +138,12 @@
 		ANNOT.set_brushsize_func(size);
 	}
 
-	document.getElementById("straw").addEventListener("click", function(){
+	/* document.getElementById("straw").addEventListener("click", function(){
 		loading("02.pcd")
 	});
 	document.getElementById("tomato").addEventListener("click", function(){
 		loading("03-10.pcd")
-	});
+	}); */
 	document.getElementById("cylinder").addEventListener("click", function(){
 		add_cylinder_func()
 	});
@@ -202,9 +202,9 @@
 	function load_from_data(data){
 		ANNOT.set_load_from_data(data);
 	}
-	const fileSelector = document.getElementById('file-selector');
+	/* const fileSelector = document.getElementById('file-selector'); */
 
-	fileSelector.addEventListener('change', (event) => {
+	/* fileSelector.addEventListener('change', (event) => {
 		var input = event.target;
 		var reader = new FileReader();
 		reader.onload = function(){
@@ -212,7 +212,7 @@
 			load_from_data(text);
 		};
 		reader.readAsArrayBuffer(input.files[0]);
-	});
+	}); */
 
 </script>
 	<body>
@@ -261,7 +261,7 @@
 		</div>		  
 		  <div class="container-fluid" style="height:100%;">
 			<div class="row" style="height:100%;">
-			  <div  class="col-2 bg-dark" style="height:100%;padding-top: 10px;">
+			 <!-- <div  class="col-2 bg-dark" style="height:100%;padding-top: 10px;">
 				  		<h3 style="color:#f0f0f0;">Annotation tool interface</h3>
 						<ul class="nav flex-column" styl="height:100%;" >
 							<li class="nav-item">
@@ -278,7 +278,7 @@
 								<input type='file' accept='text/plain' id="file-selector" multiple>
 							</li>
 						</ul>
-				</div>
+				</div>-->
 				<div class="col-sm-1" style="padding-top: 10px;">
 					<button type="button" class="btn btn-outline-secondary" data-toggle="modal" data-target="#myModal" style="margin-bottom:5px;">Help</button>
 					
@@ -340,7 +340,7 @@
 					</div>
 					
 					</div>
-					<div id="main" class="col-9" style="padding:0 !important;">
+					<div id="main" class="col-11" style="padding:0 !important;">
 					</div>
 		  </div>
 
