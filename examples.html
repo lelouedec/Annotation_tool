@@ -50,11 +50,66 @@
       </div>
     </div>
   </div>
+  <div class="row">
+    <div class="col-sm-4"> 
+      <div class="panel panel-success">
+      <div class="panel-heading">Upload point cloud </div>
+        <div id ="thirdpcd" class="panel-body"></div>
+        <input type='file' accept='text/plain' id="file-selector" multiple>
+      </div>
+    </div>
+  </div>
 </div><br>
 
 <br><br>
 
+<script>
+  function load_from_data(data){
+		// ANNOT.set_load_from_data(data);
 
+
+    
+
+    var request = indexedDB.open("mydatabase",3)
+    request.onupgradeneeded = function(event) {
+      const db = event.target.result;
+      let store = db.createObjectStore('malone', {
+         autoIncrement: true
+      });
+      let query = store.put(data);     
+    };
+    request.onsuccess = function(event) {
+      let db = event.target.result;
+
+      let transaction = db.transaction(["malone"], "readwrite"); // (1)
+      let malo =  transaction.objectStore("malone"); // (2)
+      let objectStoreRequest = malo.get(1);
+      objectStoreRequest.onsuccess = function(event) {
+        if (!event.target.result) {
+            console.log(`The contact not found`);
+        } else {
+            console.table(event.target.result);
+        }
+      }
+      let query = malo.put(data,1);     
+    };
+     
+    document.location.href = "Annot.html?posty"
+
+};
+	
+  const fileSelector = document.getElementById('file-selector');
+
+	fileSelector.addEventListener('change', (event) => {
+		var input = event.target;
+		var reader = new FileReader();
+		reader.onload = function(){
+			var text = reader.result;
+			load_from_data(text);
+		};
+		reader.readAsArrayBuffer(input.files[0]);
+	}); 
+</script>
 <script type="module">
   import * as THREE from './three.module.js';
   import { PCDLoader } from './PCDLoader.js';
@@ -94,9 +149,9 @@
     camera.updateMatrixWorld();
     renderer.render( scene, camera ); 
   }
-  create_visu("02.pcd","firstpcd");
-  create_visu("03-10.pcd","secondpcd");
-  create_visu("03-16.pcd","thirdpcd");
+  // create_visu("02.pcd","firstpcd");
+  // create_visu("03-10.pcd","secondpcd");
+  // create_visu("03-16.pcd","thirdpcd");
 
   
 

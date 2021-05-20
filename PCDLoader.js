@@ -77,7 +77,7 @@ PCDLoader.prototype = {
 			var PCDheader = {};
 			var result1 = data.search( /[\r\n]DATA\s(\S*)\s/i );
 			var result2 = /[\r\n]DATA\s(\S*)\s/i.exec( data.substr( result1 - 1 ) );
-
+			
 			PCDheader.data = result2[ 1 ];
 			PCDheader.headerLen = result2[ 0 ].length + result1;
 			PCDheader.str = data.substr( 0, PCDheader.headerLen );
@@ -180,10 +180,9 @@ PCDLoader.prototype = {
 			return PCDheader;
 
 		}
-
+		console.log(data.byteLength)
 		var textData = THREE.LoaderUtils.decodeText( new Uint8Array( data ) );
 		// parse header (always ascii format)
-
 		var PCDheader = parseHeader( textData );
     	var geometry = new THREE.Geometry();
 

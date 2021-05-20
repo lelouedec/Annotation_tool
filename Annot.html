@@ -101,8 +101,29 @@
 <script type="module" >
 	import * as ANNOT from './annotation.js';
 	loading(window.location.search.substr(1));
+
 	function loading(path){
-		ANNOT.load_pcd_function(path);
+		if(path=="posty"){
+
+			var request = indexedDB.open("mydatabase",3);
+			request.onsuccess = function(event) {
+			let db = event.target.result;
+			let transaction = db.transaction(["malone"], "readwrite"); // (1)
+			let malo =  transaction.objectStore("malone"); // (2)
+			let objectStoreRequest = malo.get(1);
+			objectStoreRequest.onsuccess = function(event) {
+				if (!event.target.result) {
+					console.log(`The contact not found`);
+				} else {
+					ANNOT.set_load_from_data(event.target.result);
+				}
+			}
+			};
+			
+		}else{
+			ANNOT.load_pcd_function(path);
+		}
+		
 	};
 	function add_cylinder_func(){
 		ANNOT.add_cylinder_func();
