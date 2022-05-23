@@ -4,6 +4,8 @@ import Stats from './stats.module.js';
 import { TrackballControls } from './TrackballControls.js';
 import { PCDLoader } from './PCDLoader.js';
 import { STLLoader } from './stl_loader.js';
+import { PLYLoader } from './PLYLoader.js';
+
 import { DragControls } from './DragControls.js';
 import { TransformControls } from './TransformControls.js';
 
@@ -37,6 +39,8 @@ var rtscene;
 var annotation;
 var loader_pcd;
 var loader_stl;
+var loader_ply;
+
 var draggables = [];
 
 var world, mass, body, shape, timeStep=1/60;
@@ -133,6 +137,7 @@ function init() {
 
     loader_pcd = new PCDLoader();
     loader_stl = new STLLoader();
+    loader_ply = new PLYLoader();
 
     var sphereGeometry = new THREE.SphereBufferGeometry( 1, 32, 32 );
     var sphereMaterial = new THREE.MeshBasicMaterial( { color: 0xa3aab5 } );
@@ -327,8 +332,12 @@ function load_pcd(path){
 }
 export function load_pcd_function(url) {load_pcd(url);}
 
-function load_from_data(data){
-    var geo = loader_pcd.parse(data);
+function load_from_data(data,type){
+    if(type=="pcd"){
+        var geo = loader_pcd.parse(data);
+    }else if(type=="ply"){
+        var geo = loader_ply.parse(data);
+    }
     console.log(geo);
     scene.remove(pointcloud);
     for ( var i = 0; i < objects.length; i ++ ) {
@@ -353,9 +362,14 @@ function load_from_data(data){
     
     camera.position.z = pointcloud.geometry.boundingSphere.radius*10;
 
-    (annotation = []).length = pointcloud.geometry.vertices.length; annotation.fill({"r":0,"g":0,"b":0});
+    if(pointcloud.geometry.type=="BufferGeometry"){
+        (annotation = []).length = pointcloud.geometry.attributes.position.count; annotation.fill({"r":0,"g":0,"b":0});
+    }else{
+        (annotation = []).length = pointcloud.geometry.vertices.length; annotation.fill({"r":0,"g":0,"b":0});
+    }
+    
 }
-export function set_load_from_data(data){load_from_data(data);};
+export function set_load_from_data(data,type){load_from_data(data,type);};
 
 function add_cylinder(){
     var heyyou = new THREE.CylinderGeometry( 1, 1, 1, 10 );
@@ -600,14 +614,27 @@ function keyboard( ev ) {
 
         case 'a':
             if(painting){
-                var vertices = pointcloud.geometry.vertices;
-                console.log(sphere.scale.x);
+                var vertices;
+                var isbuffer = false;
+                var legnth ;
+                if(pointcloud.geometry.type=="BufferGeometry"){
+                    vertices = pointcloud.geometry.attributes.position;
+                    isbuffer = true;
+                    legnth = vertices.count;
+                }else{
+                    vertices = pointcloud.geometry.vertices;
+                    legnth = vertices.length
+                }
                 var painted = [];
                 var painted_color = [];
                 var painted_prevcolor = [];
                 var prev_classe = [];
-                for (var j=0;j<vertices.length;j++){
-                    var distance = (vertices[j].x - sphere.position.x)**2 +(vertices[j].y - sphere.position.y)**2 + (vertices[j].z - sphere.position.z)**2
+                for (var j=0;j<legnth;j++){
+                    if(isbuffer){
+                        var distance = (vertices.getX(j) - sphere.position.x)**2 +(vertices.getY(j) - sphere.position.y)**2 + (vertices.getZ(j) - sphere.position.z)**2
+                    }else{
+                        var distance = (vertices[j].x - sphere.position.x)**2 +(vertices[j].y - sphere.position.y)**2 + (vertices[j].z - sphere.position.z)**2
+                    }
                     if(distance < (sphere.scale.x**2) ){
                         painted_prevcolor.push(pointcloud.geometry.colors[j]);
                         prev_classe.push(annotation[j]);
@@ -707,24 +734,6 @@ function animate() {
     camera.updateMatrixWorld();
     raycaster.setFromCamera( mouse, camera );
 
-    // if(pointcloud != null && painting){
-    //     var geometry = pointcloud.geometry;
-    //     intersects = raycaster.intersectObject(pointcloud);
-    //     intersection = ( intersects.length ) > 0 ? intersects[ 0 ] : null;
-    //     if(intersection!=null){
-    //         sphere.visible = true;
-    //         var distance = camera.position.distanceTo( geometry.vertices[intersection.index] );
-    //         var distance2 = camera.position.distanceTo( geometry.boundingSphere.center );
-    //         // console.log(distance,distance2);
-    //         if(distance<distance2){
-    //             sphere.position.copy( intersection.point );
-    //         }
-            
-    //     }else{
-    //         sphere.visible = false;
-    //     }
-        
-    // }
     if(pointcloud != null &&painting){
         var bds = pointcloud.geometry.boundingSphere;
         var newsphere = new THREE.Mesh( new THREE.SphereBufferGeometry( bds.radius, 32, 32 ), new THREE.MeshBasicMaterial( { color: 0xff0000 } ) );
@@ -746,15 +755,34 @@ function animate() {
             var dy = end.y - start.y;    // first_pts to second_pts.  Need for this is easily eliminated
             var dz = end.z - start.z;
             var lengthsq = dx**2 + dy**2 + dz**2;
-            var vertices = pointcloud.geometry.vertices;
+            
+            var vertices;
+            var isbuffer = false;
+            var legnth ;
+            if(pointcloud.geometry.type=="BufferGeometry"){
+                vertices = pointcloud.geometry.attributes.position;
+                isbuffer = true;
+                legnth = vertices.count;
+            }else{
+                vertices = pointcloud.geometry.vertices;
+                legnth = vertices.length
+            }
             var inthat = origin;
             var doted = 100000000.0;
             var dsc   = 10000.0;
-            for (var j=0;j<vertices.length;j++){
+            
+            for (var j=0;j<legnth;j++){
                 var inside = 0;
-                var pdx = vertices[j].x - start.x;		// vector from pt1 to test point.
-                var pdy = vertices[j].y - start.y;
-                var pdz = vertices[j].z - start.z;
+                var pdx,pdy,pdz;
+                if(isbuffer){
+                    pdx = vertices.getX(j) - start.x;		// vector from pt1 to test point.
+                    pdy = vertices.getY(j) - start.y;
+                    pdz = vertices.getZ(j) - start.z;
+                }else{
+                    pdx = vertices[j].x - start.x;		// vector from pt1 to test point.
+                    pdy = vertices[j].y - start.y;
+                    pdz = vertices[j].z - start.z;
+                }
                 var dot = pdx * dx + pdy * dy + pdz * dz;
                 if(dot < 0.0 || dot > lengthsq){
                     inside = 0.0
@@ -769,16 +797,17 @@ function animate() {
                 }
                 if(inside==1.0){
                     if(dot<doted ){
-                            inthat = vertices[j].clone();
+                            if(isbuffer){
+                                inthat = new THREE.Vector3(vertices.getX(j),vertices.getY(j),vertices.getZ(j));
+                            }else{
+                                inthat = vertices[j].clone();
+                            }
                             doted = dot;
                             dsc = dsq;
                     }
                 }
 
             }
-        // var axis = new THREE.Vector3(0, 1, 0);
-        // pinceau.quaternion.setFromUnitVectors(axis, dir.clone());
-        // pinceau.position.copy(intersection.point);
 
         if(inthat!=origin && intersection!=null){
             sphere.visible = true;
@@ -811,18 +840,7 @@ function createPanel() {
         // 'modify Point size': 0.005,
         'modify Paint scale': 0.01,
     };
-    // folder1.add( settings, 'show color' ).onChange( function (value){
-    //     var points = pointcloud;
-    //     if(value == false){
-    //         // points.material.color.setHex( Math.random() * 0xffffff );
-    //         pointcloud.material.vertexColors = THREE.NoColors;
-    //         points.material.needsUpdate = true;
-    //     }else{
-    //         points.material.vertexColors = THREE.VertexColors;
-    //         points.material.needsUpdate = true;
-    //     }
 
-    // });
     var explode = {'save':function(){
                                 cyclinder_contains();
                                 Sphere_contains();
@@ -855,19 +873,7 @@ function createPanel() {
     folder2.add(explode,"discard");
     folder2.add(help,"help");
 
-    // folder5.add( settings, 'modify Point size', 0.005, 1.0, 0.001 ).listen().onChange( function (value){
-    //     pointcloud.material.size = value;
-    //     pointcloud.material.needsUpdate = true;
-    // });
-    // folder5.add( settings, 'modify Paint scale', 0.05, 10.0, 0.05 ).listen().onChange( function (value){
-    //     sphere.scale.x = value;
-    //     sphere.scale.y = value;
-    //     sphere.scale.z = value;
-    // });
-
-    // folder1.open();
     folder2.open();
-    // folder5.open();
 
 }
 
@@ -883,7 +889,15 @@ function toDegrees(angle) {
 
 ///// check all annotation objects and for all cylinder it checks which points are inside
 function cyclinder_contains(){
-    var vertices = pointcloud.geometry.vertices;
+    var vertices;
+    var isbuffer = false;
+    console.log(pointcloud.geometry.attributes);
+    if(pointcloud.geometry.type=="BufferGeometry"){
+        vertices = pointcloud.geometry.attributes.position;
+        isbuffer = true;
+    }else{
+        vertices = pointcloud.geometry.vertices;
+    }
     for(var i=0;i<draggables.length;i++){
         if(draggables[i].geometry.type=="CylinderGeometry"){
             var scale    = draggables[i].scale.clone();
@@ -946,9 +960,16 @@ function cyclinder_contains(){
 
             for (var j=0;j<vertices.length;j++){
                 var inside = 0;
-                var pdx = vertices[j].x - first_pts.x;		// vector from pt1 to test point.
-                var pdy = vertices[j].y - first_pts.y;
-                var pdz = vertices[j].z - first_pts.z;
+                var pdx,pdy,pdz;
+                if(isbuffer){
+                    pdx = vertices.getX(j) - first_pts.x;		// vector from pt1 to test point.
+                    pdy = vertices.getY(j) - first_pts.y;
+                    pdz = vertices.getZ(j) - first_pts.z;
+                }else{
+                    pdx = vertices[j].x - first_pts.x;		// vector from pt1 to test point.
+                    pdy = vertices[j].y - first_pts.y;
+                    pdz = vertices[j].z - first_pts.z;
+                }
                 var dot = pdx * dx + pdy * dy + pdz * dz;
                 if(dot < 0.0 || dot > lengthsq){
                     inside = 0.0
@@ -968,31 +989,31 @@ function cyclinder_contains(){
                 }
 
             }
-            
-
-            // var spher1 = new THREE.SphereGeometry( 0.1, 32, 32 );
-            // var spher2 = new THREE.SphereGeometry( 0.1, 32, 32 );
-            // var material = new THREE.MeshBasicMaterial( {color: 0xffff00} );
-            // var sphere = new THREE.Mesh( spher1, material );
-            // sphere.position.set(first_pts.x,first_pts.y,first_pts.z );
-            // scene.add( sphere );
-            // var material = new THREE.MeshBasicMaterial( {color: 0x0000ff} );
-            // var sphere = new THREE.Mesh( spher2, material );
-            // sphere.position.set(second_pts.x,second_pts.y,second_pts.z );
-            // scene.add( sphere );
-
         }
     }
 }
 
 
 function Sphere_contains(){
-    var vertices = pointcloud.geometry.vertices;
+    var vertices;
+    var isbuffer = false;
+    console.log(pointcloud.geometry.attributes);
+    if(pointcloud.geometry.type=="BufferGeometry"){
+        vertices = pointcloud.geometry.attributes.position;
+        isbuffer = true;
+    }else{
+        vertices = pointcloud.geometry.vertices;
+    }
     for(var i=0;i<draggables.length;i++){
         if(draggables[i].geometry.type=="SphereGeometry"){
             var center = draggables[i].position.clone()
             for (var j=0;j<vertices.length;j++){
-                var distance = (vertices[j].x - center.x)**2 +(vertices[j].y - center.y)**2 + (vertices[j].z - center.z)**2
+                if(isbuffer){
+                    var distance = (vertices.getX(j) - center.x)**2 +(vertices.getY(j) - center.y)**2 + (vertices.getZ(j) - center.z)**2
+                }else{
+                    var distance = (vertices[j].x - center.x)**2 +(vertices[j].y - center.y)**2 + (vertices[j].z - center.z)**2
+                }
+                
                 if(distance < draggables[i].scale.x**2){
                     annotation[j] = {"r":draggables[i].material.color.r,"g":draggables[i].material.color.g,"b":draggables[i].material.color.b};
                     pointcloud.geometry.colors[j] ={r:draggables[i].material.color.r,g:draggables[i].material.color.g,b:draggables[i].material.color.b};
@@ -1004,7 +1025,15 @@ function Sphere_contains(){
     
 }
 function cuboid_contains(){
-    var vertices = pointcloud.geometry.vertices;
+    var vertices;
+    var isbuffer = false;
+    console.log(pointcloud.geometry.attributes);
+    if(pointcloud.geometry.type=="BufferGeometry"){
+        vertices = pointcloud.geometry.attributes.position;
+        isbuffer = true;
+    }else{
+        vertices = pointcloud.geometry.vertices;
+    }
     for(var i=0;i<draggables.length;i++){
         if(draggables[i].geometry.type=="BoxGeometry"){
             var scale    = draggables[i].scale.clone();
@@ -1088,7 +1117,13 @@ function cuboid_contains(){
             var inside = 0.0;
             for (var a=0;a<vertices.length;a++){
                 inside = 0.0;
-                var p = new THREE.Vector3(vertices[a].x,vertices[a].y,vertices[a].z)
+                var p ;
+                if(isbuffer){
+                    p = new THREE.Vector3(vertices.getX(j),vertices.getY(j),vertices.getZ(j))
+                }else{
+                    p = new THREE.Vector3(vertices[a].x,vertices[a].y,vertices[a].z)
+                }
+
                 var dotpu = p.x * u.x + p.y * u.y + p.z * u.z;
                 var dotpv = p.x * v.x + p.y * v.y + p.z * v.z;
                 var dotpw = p.x * w.x + p.y * w.y + p.z * w.z;
@@ -1099,40 +1134,14 @@ function cuboid_contains(){
                 }
                 if(inside == 1.0){
                     annotation[a] = {"r":draggables[i].material.color.r,"g":draggables[i].material.color.g,"b":draggables[i].material.color.b};
-                    pointcloud.geometry.colors[j] ={r:draggables[i].material.color.r,g:draggables[i].material.color.g,b:draggables[i].material.color.b};
+                    pointcloud.geometry.colors[a] ={r:draggables[i].material.color.r,g:draggables[i].material.color.g,b:draggables[i].material.color.b};
                     pointcloud.geometry.colorsNeedUpdate = true;
                 }
             }
-            // var spher1 = new THREE.SphereGeometry( 0.1, 32, 32 );
-            // var spher2 = new THREE.SphereGeometry( 0.1, 32, 32 );
-            // var material = new THREE.MeshBasicMaterial( {color: 0xff0000} );
-            // var sphere = new THREE.Mesh( spher1, material );
-            // sphere.position.set(p1.x,p1.y,p1.z );
-            // scene.add( sphere );
-
-            // var material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
-            // var sphere = new THREE.Mesh( spher2, material );
-            // sphere.position.set(p2.x,p2.y,p2.z );
-            // scene.add( sphere );
-
-            // var material = new THREE.MeshBasicMaterial( {color: 0x0000ff} );
-            // var sphere = new THREE.Mesh( spher2, material );
-            // sphere.position.set(p4.x,p4.y,p4.z );
-            // scene.add( sphere );
-
-            // var material = new THREE.MeshBasicMaterial( {color: 0xffffff} );
-            // var sphere = new THREE.Mesh( spher2, material );
-            // sphere.position.set(p5.x,p5.y,p5.z );
-            // scene.add( sphere );
-
         }
     }
 
 }
-function elypsoid_contains(){
-    
-}
-
 
 function getKeyByValue(object, value) {
     return Object.keys(object).find(key => object[key] === value);

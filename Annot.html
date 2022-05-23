@@ -100,10 +100,13 @@
 <!-- <script type="module" src="annotation.js" ></script> -->
 <script type="module" >
 	import * as ANNOT from './annotation.js';
+	
+	let params = new URLSearchParams(location.search);
+	var  pctype = params.get('posty')
 	loading(window.location.search.substr(1));
-	alert(window.location.search.substr(1))
+	
 	function loading(path){
-		if(path=="posty"){
+		if(params.get('posty')=="pcd" || params.get('posty')=="ply"){
 
 			var request = indexedDB.open("mydatabase",3);
 			request.onsuccess = function(event) {
@@ -116,7 +119,7 @@
 					if (!event.target.result) {
 						alert(`could not load file sorry :(`);
 					} else {
-						ANNOT.set_load_from_data(event.target.result);
+						ANNOT.set_load_from_data(event.target.result,pctype);
 					}
 				}
 			};

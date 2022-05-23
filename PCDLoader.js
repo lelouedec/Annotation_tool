@@ -189,7 +189,7 @@ PCDLoader.prototype = {
 		// parse header (always ascii format)
 
 		var PCDheader = parseHeader( textData );
-    var geometry = new THREE.Geometry();
+    	var geometry = new THREE.Geometry();
 
 		// parse data
 
@@ -297,12 +297,12 @@ PCDLoader.prototype = {
 		// if ( position.length > 0 ) geometry.addAttribute( 'position', new THREE.Float32BufferAttribute( position, 3 ) );
 		// // if ( normal.length > 0 ) geometry.addAttribute( 'normal', new THREE.Float32BufferAttribute( normal, 3 ) );
 		// if ( color.length > 0 ) geometry.addAttribute( 'color', new THREE.Float32BufferAttribute( color, 3 ) );
-    console.log(geometry);
-    geometry.computeBoundingSphere();
-    geometry.computeBoundingBox();
+		console.log(geometry);
+		geometry.computeBoundingSphere();
+		geometry.computeBoundingBox();
 
-    var material = new THREE.PointsMaterial( { size : 0.05,vertexColors: THREE.VertexColors } );
-    var points  = new THREE.Points( geometry, material );
+		var material = new THREE.PointsMaterial( { size : 0.05,vertexColors: THREE.VertexColors } );
+		var points  = new THREE.Points( geometry, material );
 
 		return points;
   }
