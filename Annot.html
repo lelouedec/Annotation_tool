@@ -101,23 +101,24 @@
 <script type="module" >
 	import * as ANNOT from './annotation.js';
 	loading(window.location.search.substr(1));
-
+	alert(window.location.search.substr(1))
 	function loading(path){
 		if(path=="posty"){
 
 			var request = indexedDB.open("mydatabase",3);
 			request.onsuccess = function(event) {
-			let db = event.target.result;
-			let transaction = db.transaction(["malone"], "readwrite"); // (1)
-			let malo =  transaction.objectStore("malone"); // (2)
-			let objectStoreRequest = malo.get(1);
-			objectStoreRequest.onsuccess = function(event) {
-				if (!event.target.result) {
-					console.log(`The contact not found`);
-				} else {
-					ANNOT.set_load_from_data(event.target.result);
+				
+				let db = event.target.result;
+				let transaction = db.transaction(["malone"], "readwrite"); // (1)
+				let malo =  transaction.objectStore("malone"); // (2)
+				let objectStoreRequest = malo.get(1);
+				objectStoreRequest.onsuccess = function(event) {
+					if (!event.target.result) {
+						alert(`could not load file sorry :(`);
+					} else {
+						ANNOT.set_load_from_data(event.target.result);
+					}
 				}
-			}
 			};
 			
 		}else{
@@ -204,17 +205,22 @@
 	var slider2 = document.getElementById("brushrange");
 	
 	var output = document.getElementById("pointval");
-	output.innerHTML = slider1.value; // Display the default slider value
+	output.value = slider1.getAttribute("max");// Display the default slider value
+	output.oninput = function() {
+		slider1.setAttribute("max",this.value);
+	} 
 
 	// Update the current slider value (each time you drag the slider handle)
 	slider1.oninput = function() {
-		output.innerHTML = this.value;
+		/* output.value = this.value; */
 		pointsize_func(this.value);
 	} 
 
 	var output2 = document.getElementById("brushval");
-	output2.innerHTML = slider2.value; // Display the default slider value
-
+	output2.value = slider2.getAttribute("max"); // Display the default slider value
+	output2.oninput = function() {
+		slider2.setAttribute("max",this.value);
+	} 
 	// Update the current slider value (each time you drag the slider handle)
 	slider2.oninput = function() {
 		output2.innerHTML = this.value;
@@ -351,13 +357,13 @@
 						  <div class="col border border-light class1"style="background-color:#ff9933;text-align:center;color:white;">7</div>
 						  <div class="col border border-light class1"style="background-color:#990099;text-align:center;color:white;">8</div>
 					</div>
-					<span>Point Size:<span id="pointval" contenteditable="true"> </span></span>
+					<span>Max Size:<input type="text" id="pointval" contenteditable="true" size="10"> </input></span>
 					<div class="slidecontainer">
-						<input type="range" min="0.01" max="0.5" step="0.01" value="0.01" class="slider" id="pointrange">
+						<input type="range" min="0.01" max="2.0" step="0.01" value="0.01" class="slider" id="pointrange">
 					</div>
-					<span>Brush Size:<span id="brushval" contenteditable="true"> </span></span>
+					<span>Brush Size:<input type="text" id="brushval" contenteditable="true" size="10"></span>
 					<div class="slidecontainer">
-						<input type="range" min="0.1" max="10" step="0.1" value="0.2" class="slider" id="brushrange">
+						<input type="range" min="0.05" max="100" step="0.05" value="0.1" class="slider" id="brushrange">
 					</div>
 					
 					</div>

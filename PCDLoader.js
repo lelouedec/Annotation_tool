@@ -71,13 +71,16 @@ PCDLoader.prototype = {
 
 	},
 
-	parse: function ( data ) {
+	parse: function ( data, url ) {
 
 		function parseHeader( data ) {
+
 			var PCDheader = {};
 			var result1 = data.search( /[\r\n]DATA\s(\S*)\s/i );
 			var result2 = /[\r\n]DATA\s(\S*)\s/i.exec( data.substr( result1 - 1 ) );
-			
+			if(!result2){
+				alert(`could not load file sorry :(`);
+			}
 			PCDheader.data = result2[ 1 ];
 			PCDheader.headerLen = result2[ 0 ].length + result1;
 			PCDheader.str = data.substr( 0, PCDheader.headerLen );
@@ -180,11 +183,13 @@ PCDLoader.prototype = {
 			return PCDheader;
 
 		}
-		console.log(data.byteLength)
+
 		var textData = THREE.LoaderUtils.decodeText( new Uint8Array( data ) );
+
 		// parse header (always ascii format)
+
 		var PCDheader = parseHeader( textData );
-    	var geometry = new THREE.Geometry();
+    var geometry = new THREE.Geometry();
 
 		// parse data
 
@@ -259,7 +264,7 @@ PCDLoader.prototype = {
 					// position.push( dataview.getFloat32( row + offset.x, this.littleEndian ) );
 					// position.push( dataview.getFloat32( row + offset.y, this.littleEndian ) );
 					// position.push( dataview.getFloat32( row + offset.z, this.littleEndian ) );
-          			geometry.vertices.push(new THREE.Vector3(dataview.getFloat32( row + offset.x, this.littleEndian ),dataview.getFloat32( row + offset.y, this.littleEndian ),dataview.getFloat32( row + offset.z, this.littleEndian ) ) );
+          geometry.vertices.push(new THREE.Vector3(dataview.getFloat32( row + offset.x, this.littleEndian ),dataview.getFloat32( row + offset.y, this.littleEndian ),dataview.getFloat32( row + offset.z, this.littleEndian ) ) );
 
 				}
 
@@ -268,9 +273,9 @@ PCDLoader.prototype = {
 					// color.push( dataview.getUint8( row + offset.rgb + 2 ) / 255.0 );
 					// color.push( dataview.getUint8( row + offset.rgb + 1 ) / 255.0 );
 					// color.push( dataview.getUint8( row + offset.rgb + 0 ) / 255.0 );
-					geometry.colors.push(new THREE.Color(  dataview.getUint8( row + offset.rgb + 2 ) / 255.0, dataview.getUint8( row + offset.rgb + 1 ) / 255.0, dataview.getUint8( row + offset.rgb + 0 ) / 255.0 ) );
+          geometry.colors.push(new THREE.Color(  dataview.getUint8( row + offset.rgb + 2 ) / 255.0, dataview.getUint8( row + offset.rgb + 1 ) / 255.0, dataview.getUint8( row + offset.rgb + 0 ) / 255.0 ) );
 				}else{
-					geometry.colors.push(new THREE.Color(  0.6,0.6,0.6) );
+					geometry.colors.push(new THREE.Color(  0.60,0.6,0.6) );
 	
 				}
 
@@ -292,13 +297,14 @@ PCDLoader.prototype = {
 		// if ( position.length > 0 ) geometry.addAttribute( 'position', new THREE.Float32BufferAttribute( position, 3 ) );
 		// // if ( normal.length > 0 ) geometry.addAttribute( 'normal', new THREE.Float32BufferAttribute( normal, 3 ) );
 		// if ( color.length > 0 ) geometry.addAttribute( 'color', new THREE.Float32BufferAttribute( color, 3 ) );
+    console.log(geometry);
     geometry.computeBoundingSphere();
-    // geometry.computeBoundingBox();
+    geometry.computeBoundingBox();
 
     var material = new THREE.PointsMaterial( { size : 0.05,vertexColors: THREE.VertexColors } );
     var points  = new THREE.Points( geometry, material );
 
-	return points;
+		return points;
   }
   //
   //   var geom = new THREE.Geometry();

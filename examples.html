@@ -31,21 +31,21 @@
     <div class="col-sm-4">
       <div class="panel panel-primary">
         <div class="panel-heading">Strawberry Example</div>
-        <div id="firstpcd" class="panel-body"></div>
+        <div id ="thirdpcd" class="panel-body" style="margin-left: 15%;"> <img src="straw.png" alt="Girl in a jacket" width="200" height="200">  </div>
         <div class="panel-footer text-center"><a href ="Annot.html?02.pcd"> Click me </a></div>
       </div>
     </div>
     <div class="col-sm-4"> 
       <div class="panel panel-danger">
         <div class="panel-heading">Tomato plant example</div>
-        <div id ="secondpcd" class="panel-body"></div>
+        <div id ="thirdpcd" class="panel-body" style="margin-left: 15%;"> <img src="tomato.png" alt="Girl in a jacket" width="200" height="200">  </div>
         <div class="panel-footer text-center"><a href ="Annot.html?03-10.pcd"> Click me </a></div>
       </div>
     </div>
     <div class="col-sm-4"> 
       <div class="panel panel-success">
         <div class="panel-heading">Maize plante</div>
-        <div id ="thirdpcd" class="panel-body"></div>
+        <div id ="thirdpcd" class="panel-body" style="margin-left: 15%;"> <img src="maize.png" alt="Girl in a jacket" width="200" height="200">  </div>
         <div class="panel-footer text-center"><a href ="Annot.html?03-16.pcd"> Click me </a></div>
       </div>
     </div>
@@ -56,6 +56,7 @@
       <div class="panel-heading">Upload point cloud </div>
         <div id ="thirdpcd" class="panel-body"></div>
         <input type='file' accept='text/plain' id="file-selector" multiple>
+        <div class="panel-footer text-center">Please use uncompressed pcd format for now, more coming later. Also only firefox :( chrome as a weird bug</div>
       </div>
     </div>
   </div>
@@ -66,39 +67,40 @@
 <script>
   function load_from_data(data){
 		// ANNOT.set_load_from_data(data);
+    var request = indexedDB.open("mydatabase",3);
+    if (!window.indexedDB) {
+        console.log("Your browser doesn't support a stable version of IndexedDB. Such and such feature will not be available.");
+    }
 
-
-    
-
-    var request = indexedDB.open("mydatabase",3)
     request.onupgradeneeded = function(event) {
       const db = event.target.result;
       let store = db.createObjectStore('malone', {
          autoIncrement: true
       });
-      let query = store.put(data);     
+      let query = store.put(data);    
     };
     request.onsuccess = function(event) {
       let db = event.target.result;
-
-      let transaction = db.transaction(["malone"], "readwrite"); // (1)
-      let malo =  transaction.objectStore("malone"); // (2)
-      let objectStoreRequest = malo.get(1);
-      objectStoreRequest.onsuccess = function(event) {
-        if (!event.target.result) {
-            console.log(`The contact not found`);
-        } else {
-            console.table(event.target.result);
-        }
+      
+      try{
+        let transaction = db.transaction(["malone"], "readwrite"); // (1)
+        let malo =  transaction.objectStore("malone"); // (2)
+        let objectStoreRequest = malo.get(1);
+        let query = malo.put(data,1);     
       }
-      let query = malo.put(data,1);     
+      catch{
+        alert("couldnt transfer data sorry :(")
+      }
+      
     };
      
-    document.location.href = "Annot.html?posty"
+    document.location.href = "Annot.html?posty="+extension
 
 };
+
 	
   const fileSelector = document.getElementById('file-selector');
+  var extension = ""
 
 	fileSelector.addEventListener('change', (event) => {
 		var input = event.target;
@@ -107,6 +109,7 @@
 			var text = reader.result;
 			load_from_data(text);
 		};
+    extension = input.files[0].name.split('.')[1];
 		reader.readAsArrayBuffer(input.files[0]);
 	}); 
 </script>

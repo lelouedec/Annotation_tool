@@ -11,6 +11,7 @@ import { TransformControls } from './TransformControls.js';
 import { SelectionBox } from './SelectionBox.js';
 import { SelectionHelper } from './SelectionHelper.js';
 import { GUI } from './dat.gui.module.js';
+// import * as tree from './index.js';
 
 var container;
 var camera,camera2,camera3,camera4, controls,scene, renderer,renderer2,renderer3;
@@ -269,9 +270,13 @@ function load_pcd(path){
             }            
             draggables.length = 0;
             transformControls.detach();
+
+
             
 
             pointcloud = geo;
+            // tree.initAsync(pointcloud.geometry.vertices);
+
             pointcloud.geometry.computeBoundingSphere()
             scene.add( pointcloud );
             var center = pointcloud.geometry.boundingSphere.center;
@@ -732,11 +737,11 @@ function animate() {
             var dir = new THREE.Vector3(raycaster.ray.direction.x,raycaster.ray.direction.y,raycaster.ray.direction.z);
             //normalize the direction vector (convert to vector of length 1)
             dir.normalize();
-            var radi = 0.1// sphere.scale.x;
+            var radi = sphere.scale.x;
             // var nb_steps = 10
             var pos = new THREE.Vector3(origin.x,origin.y,origin.z);
             var start = new THREE.Vector3(pos.x-(dir.x*100), pos.y-(dir.y*100),pos.z-(dir.z*100));
-            var end   = new THREE.Vector3(pos.x+(dir.x*100), pos.y+(dir.y*100),pos.z+(dir.z*100));
+            var end   = new THREE.Vector3(pos.x+(dir.x*10000), pos.y+(dir.y*10000),pos.z+(dir.z*10000));
             var dx = end.x - start.x;	// translate so first_pts is origin.  Make vector from
             var dy = end.y - start.y;    // first_pts to second_pts.  Need for this is easily eliminated
             var dz = end.z - start.z;
