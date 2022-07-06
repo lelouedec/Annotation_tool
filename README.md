@@ -1,7 +1,16 @@
 # 3D Annotation Tool
 
 # Installation
-The tool requires the Apache server. 
+The tool requires the Apache server.
+
+## Ubuntu
+To install the Apache server issue:
+```
+sudo apt update
+sudo apt install apache2
+```
+- then open `http://localhost/` in the browser and you should see a site with the "It works!" message and some additional information.
+
 
 ## Windows
 The easiest way to install the server on Windows is to:
