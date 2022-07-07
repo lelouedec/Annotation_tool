@@ -16,7 +16,9 @@ sudo apt install apache2
 The easiest way to install the server on Windows is to:
  - download the binaries from [Apache Lounge](https://www.apachelounge.com/download/) and then:
  - extract all files to `C:\Apache24`;
- - run `C:\Apache24\bin\httpd.exe`;
+ - you have two options to run the server:
+    - as a standalone app by running `C:\Apache24\bin\httpd.exe`;
+    - as a service from a command line (as admin): `C:\Apache24\bin\httpd.exe -k install -n "Apache2.4"`
  - open `http://localhost/` in the browser and you should see a site with the "It works!" message.
 
 The default location for the website is in `C:\Apache24\htdocs`. You can either copy all the files from this repository to that folder or (better) change the server configuration file and point to your custom local directory. To do so:
