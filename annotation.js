@@ -841,7 +841,7 @@ function createPanel() {
         'modify Paint scale': 0.01,
     };
 
-    var explode = {'save':function(){
+    var explode = {	'save':function(){
                                 cyclinder_contains();
                                 Sphere_contains();
                                 cuboid_contains();
@@ -860,16 +860,44 @@ function createPanel() {
                                 a.download = "pouet"
                                 a.href = URL.createObjectURL(new Blob([JSON.stringify(msg)], {type: 'application/json'}))
                                 a.click()
-                                },
-                                'discard':function(){
-                                    console.log("discard");
-                                }
+                                },								
+                    'discard':function(){
+						console.log("discard");
+                    }
     }
     var help = {'help':function(){
                 $("#myModal").modal();
             }
     }
-    folder2.add(explode,"save");
+	
+	//load annotation file
+	let load = {'load': function() {
+		let input = document.createElement('input');
+		input.type = 'file';
+		input.accept = '.json';
+		input.onchange = function(e) {
+			let reader = new FileReader();
+			reader.readAsText(e.target.files[0], 'UTF-8');
+			reader.onload = e => {
+				let new_data = JSON.parse(e.target.result);
+				if (new_data.annotation.length == annotation.length) {
+					for (let i = 0; i < new_data.annotation.length; i++) {
+					  if (new_data.annotation[i] != "0") {
+						  annotation[i] = JSON.parse(classes[new_data.annotation[i]]);
+						  pointcloud.geometry.colors[i] = annotation[i];					  
+					  }
+					};
+					pointcloud.geometry.colorsNeedUpdate = true;					
+				} else {
+					alert('The wrong annotation file.');
+				};
+			};
+		};
+		input.click();	
+	}};
+	
+	folder2.add(load, "load").name("load annotation");
+    folder2.add(explode,"save").name("save annotation");
     folder2.add(explode,"discard");
     folder2.add(help,"help");
 
