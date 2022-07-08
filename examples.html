@@ -30,23 +30,23 @@
   <div class="row">
     <div class="col-sm-4">
       <div class="panel panel-primary">
-        <div class="panel-heading">Strawberry Example</div>
-        <div id ="thirdpcd" class="panel-body" style="margin-left: 15%;"> <img src="straw.png" alt="Girl in a jacket" width="200" height="200">  </div>
-        <div class="panel-footer text-center"><a href ="Annot.html?02.pcd"> Click me </a></div>
+        <div class="panel-heading">Strawberry</div>
+        <div id ="thirdpcd" class="panel-body" style="margin-left: 15%;"> <img src="straw.png" alt="Strawberry" width="200" height="200">  </div>
+        <div class="panel-footer text-center"><a href=# onclick="load_pc_raw('02.pcd'); return false;"> Click me </a></div>
       </div>
     </div>
     <div class="col-sm-4"> 
       <div class="panel panel-danger">
-        <div class="panel-heading">Tomato plant example</div>
-        <div id ="thirdpcd" class="panel-body" style="margin-left: 15%;"> <img src="tomato.png" alt="Girl in a jacket" width="200" height="200">  </div>
-        <div class="panel-footer text-center"><a href ="Annot.html?03-10.pcd"> Click me </a></div>
+        <div class="panel-heading">Tomato Plant</div>
+        <div id ="thirdpcd" class="panel-body" style="margin-left: 15%;"> <img src="tomato.png" alt="Tomato" width="200" height="200">  </div>
+        <div class="panel-footer text-center"><a href=# onclick="load_pc_raw('03-10.pcd'); return false;"> Click me </a></div>
       </div>
     </div>
     <div class="col-sm-4"> 
       <div class="panel panel-success">
-        <div class="panel-heading">Maize plante</div>
-        <div id ="thirdpcd" class="panel-body" style="margin-left: 15%;"> <img src="maize.png" alt="Girl in a jacket" width="200" height="200">  </div>
-        <div class="panel-footer text-center"><a href ="Annot.html?03-16.pcd"> Click me </a></div>
+        <div class="panel-heading">Maize Plant</div>
+        <div id ="thirdpcd" class="panel-body" style="margin-left: 15%;"> <img src="maize.png" alt="Maize" width="200" height="200">  </div>
+        <div class="panel-footer text-center"><a href=# onclick="load_pc_raw('03-16.pcd'); return false;"> Click me </a></div>
       </div>
     </div>
   </div>
@@ -55,8 +55,8 @@
       <div class="panel panel-success">
       <div class="panel-heading">Upload point cloud </div>
         <div id ="thirdpcd" class="panel-body"></div>
-        <input type='file' accept='text/plain' id="file-selector" multiple>
-        <div class="panel-footer text-center">Please use uncompressed pcd format for now, more coming later. Also only firefox :( chrome as a weird bug</div>
+        <input type='file' accept='.pcd' id="file-selector" multiple onchange="(function(e){ load_pc_raw(e.target.files[0].name); })(event)">
+        <div class="panel-footer text-center">Only uncompressed binary pcd format for now, more coming later.</div>
       </div>
     </div>
   </div>
@@ -65,54 +65,38 @@
 <br><br>
 
 <script>
-  function load_from_data(data){
-		// ANNOT.set_load_from_data(data);
-    var request = indexedDB.open("mydatabase",3);
-    if (!window.indexedDB) {
-        console.log("Your browser doesn't support a stable version of IndexedDB. Such and such feature will not be available.");
-    }
-
-    request.onupgradeneeded = function(event) {
-      const db = event.target.result;
-      let store = db.createObjectStore('malone', {
-         autoIncrement: true
-      });
-      let query = store.put(data);    
-    };
-    request.onsuccess = function(event) {
-      let db = event.target.result;
-      
-      try{
-        let transaction = db.transaction(["malone"], "readwrite"); // (1)
-        let malo =  transaction.objectStore("malone"); // (2)
-        let objectStoreRequest = malo.get(1);
-        let query = malo.put(data,1);     
-      }
-      catch{
-        alert("couldnt transfer data sorry :(")
-      }
-      
-    };
-     
-    document.location.href = "Annot.html?posty="+extension
-
+//read a custom point cloud file
+async function load_pc_raw(filename) {
+	let file_ext = filename.split(".").pop();
+    fetch(filename)
+        .then(result => result.arrayBuffer())
+        .then((pc_data) => {
+			let db_request = indexedDB.open('mydatabase');
+			//if new/outdated DB, create a new object store
+			db_request.onupgradeneeded = function(event) {
+				const db = event.target.result;
+				db.createObjectStore('pc_store', {autoIncrement: true});
+			};
+			//add/update the DB record with the pc data
+			db_request.onsuccess = function(event) {
+				const db = event.target.result;
+				//just in case there is no object store, create one
+				if(!db.objectStoreNames.contains('pc_store')) {
+					db.createObjectStore('pc_store', {autoIncrement: true});
+				};
+				//add/update the pc data
+				const transaction = db.transaction(['pc_store'], 'readwrite');
+				transaction.oncomplete = function(event) {
+					//all good, launch the annotator
+					document.location.href = "Annot.html";			
+				};
+				transaction.objectStore('pc_store').put({pc_data, file_ext}, 1);  
+			};
+        }).catch(err => console.error(err));
 };
 
-	
-  const fileSelector = document.getElementById('file-selector');
-  var extension = ""
-
-	fileSelector.addEventListener('change', (event) => {
-		var input = event.target;
-		var reader = new FileReader();
-		reader.onload = function(){
-			var text = reader.result;
-			load_from_data(text);
-		};
-    extension = input.files[0].name.split('.')[1];
-		reader.readAsArrayBuffer(input.files[0]);
-	}); 
 </script>
+
 <script type="module">
   import * as THREE from './three.module.js';
   import { PCDLoader } from './PCDLoader.js';
