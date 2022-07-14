@@ -100,35 +100,17 @@
 <!-- <script type="module" src="annotation.js" ></script> -->
 <script type="module" >
 	import * as ANNOT from './annotation.js';
-	
-	let params = new URLSearchParams(location.search);
-	var  pctype = params.get('posty')
-	loading(window.location.search.substr(1));
-	
-	function loading(path){
-		if(params.get('posty')=="pcd" || params.get('posty')=="ply"){
 
-			var request = indexedDB.open("mydatabase",3);
-			request.onsuccess = function(event) {
-				
-				let db = event.target.result;
-				let transaction = db.transaction(["malone"], "readwrite"); // (1)
-				let malo =  transaction.objectStore("malone"); // (2)
-				let objectStoreRequest = malo.get(1);
-				objectStoreRequest.onsuccess = function(event) {
-					if (!event.target.result) {
-						alert(`could not load file sorry :(`);
-					} else {
-						ANNOT.set_load_from_data(event.target.result,pctype);
-					}
-				}
-			};
-			
-		}else{
-			ANNOT.load_pcd_function(path);
-		}
-		
+	//read and parse a point cloud from raw data in the database
+	const request = indexedDB.open('mydatabase');
+	request.onsuccess = function(event) {
+		let db = event.target.result;
+		let objectStoreRequest = db.transaction(['pc_store'], 'readwrite').objectStore('pc_store').get(1);
+		objectStoreRequest.onsuccess = function(event) {
+			ANNOT.set_load_from_data(event.target.result.pc_data, event.target.result.file_ext);
+		};
 	};
+	
 	function add_cylinder_func(){
 		ANNOT.add_cylinder_func();
 	};
